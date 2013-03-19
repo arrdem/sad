@@ -5,8 +5,10 @@
 
 (defmacro deftoken [symbol val]
   `(def ~symbol
-     (fnp/term
-      #(= (:lexington.tokens/type %1) ~val))))
+     (fnp/semantics
+      (fnp/term
+       #(= (:lexington.tokens/type %1) ~val))
+      :val)))
 
 (def whitespace-re    #" |\t|\r|\n")
 (def simple-string-re #"\"[^\"]+\"")
