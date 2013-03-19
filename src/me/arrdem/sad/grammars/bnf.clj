@@ -76,6 +76,7 @@
     Expression
     dot)
    (fn [[sym _ exp]]
+     (util/register-sym sym)
      `(def ~sym (fnp/effects
                  (fnp/semantics
                   ~exp

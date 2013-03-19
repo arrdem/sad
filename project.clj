@@ -1,4 +1,4 @@
-(defproject me.arrdem.sad "0.1.1-SNAPSHOT"
+(defproject me.arrdem.sad "0.1.2-SNAPSHOT"
   :description "A parser generator"
   :url "http://github.com/arrdem/sad"
   :license {:name "Eclipse Public License"
