@@ -1,8 +1,9 @@
 (ns me.arrdem.sad.grammars.bnf
-  (:require [lexington.lexer       :refer :all]
+  (:require [lexington.lexer :refer :all]
             [lexington.utils.lexer :refer :all]
             [name.choi.joshua.fnparse :as fnp]
-            [me.arrdem.sad.grammars.util :as util]))
+            [me.arrdem.sad.grammars.util :as util]
+            [me.arrdem.sad.util :as runtime-util]))
 
 ;; syntax        ::=  { rule }
 ;; rule          ::=  identifier  "::="  expression "."
@@ -39,20 +40,6 @@
 (util/deftoken NonTerminal :ident)
 (util/deftoken dot         :dot)
 
-(def bnf-hooks-registry (atom {}))
-(def bnf-semantics-registry (atom {}))
-(defn make-bnf-file-prefix []
-  ['(require 'name.choi.joshua.fnparse)
-   `(def ~'bnf-semantics-registry (atom {}))
-   `(def ~'bnf-hooks-registry      (atom {}))
-   `(defn ~'get-hooks [sym#]
-      (if-let [fns# (sym# @~'bnf-hook-registry )]
-        (apply comp fns#)))
-   `(defn ~'get-semantics [sym#]
-      (if-let [fns# (sym# @~'bnf-semantics-registry)]
-        (apply comp fns#)))])
-
-
 (declare Syntax Production Expression Term Factor)
 
 (def Syntax
@@ -66,13 +53,11 @@
     Expression
     dot)
    (fn [[sym _ exp]]
-     (swap! bnf-semantics-registry assoc sym 'identity)
-     (swap! bnf-hooks-registry assoc sym 'identity)
      `(def ~sym (fnp/effects
                  (fnp/semantics
                   ~exp
-                  (~'get-semantics (quote ~sym)))
-                 (~'get-hooks (quote ~sym)))))))
+                  (runtime-util/get-semantics (quote ~sym)))
+                 (runtime-util/get-hooks (quote ~sym)))))))
 
 (def Expression
   (fnp/semantics
@@ -84,7 +69,7 @@
       Term)))
    (fn [[t terms]]
      (let [terms (map second terms)]
-       (if terms
+       (if-not (empty? terms)
          `(fnp/alt ~t ~@terms)
          t)))))
 
@@ -92,7 +77,9 @@
   (fnp/semantics
    (fnp/rep+ Factor)
    (fn [factors]
-     `(fnp/conc ~@factors))))
+     (if (< 1 (count factors))
+       `(fnp/conc ~@factors)
+       (first factors)))))
 
 (def Factor
   (fnp/alt
@@ -103,8 +90,9 @@
     )))
 
 (defn run [{:keys [srcfile str]}]
-  (-> (if str str
-          (slurp srcfile))
+  (-> (if str
+        str
+        (slurp srcfile))
       bnf-lexer
       (#(util/fnparse-run Syntax %1))
-      (#(concat (make-bnf-file-prefix) %1))))
+      (#(concat (util/make-bnf-file-prefix) %1))))
