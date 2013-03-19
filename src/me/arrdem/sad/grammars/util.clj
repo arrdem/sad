@@ -1,7 +1,8 @@
 (ns me.arrdem.sad.grammars.util
   (:require [lexington.lexer       :refer :all]
             [lexington.utils.lexer :refer :all]
-            [name.choi.joshua.fnparse :as fnp]))
+            [name.choi.joshua.fnparse :as fnp]
+            [clojure.set           :refer [union]]))
 
 (defmacro deftoken [symbol val]
   `(def ~symbol
@@ -14,13 +15,6 @@
 (def simple-string-re #"\"[^\"]+\"")
 (def good-string-re   #"\"[^\"\\]*(?:\\.[^\"\\]*)*\"")
 
-(def strfn
-  (fn [v]
-    (-> (:lexington.tokens/data v)
-        butlast
-        (#(drop 1 %1))
-        (#(apply str %1)))))
-
 (defn fnparse-run [rule tokens]
   (apply vector
          (fnp/rule-match
@@ -29,10 +23,29 @@
           #(println "LEFTOVER: " %2)
           {:remainder tokens})))
 
+(def reader
+  (comp read-string
+        #(apply str %)
+        :lexington.tokens/data))
+
+(def wordfn
+  (fn [v]
+    (apply str
+           (:lexington.tokens/data v))))
+
+(def strfn
+  (fn [v]
+    (-> (:lexington.tokens/data v)
+        butlast
+        (#(drop 1 %1))
+        (#(apply str %1)))))
+
+(def sym-registry (atom #{}))
+
+(defn register-sym [sym]
+  (swap! sym-registry union #{sym}))
+
 (defn make-bnf-file-prefix []
   ['(require '(name.choi.joshua.fnparse)
-             '(me.arrdem.sad.util))])
-
-(def reader (comp read-string #(apply str %) :lexington.tokens/data))
-(def wordfn (fn [v] (apply str (:lexington.tokens/data v))))
-(def strfn (fn [v] (apply str (drop 1 (butlast (:lexington.tokens/data v))))))
+             '(me.arrdem.sad.util))
+   `(declare ~@(deref sym-registry))])

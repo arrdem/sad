@@ -15,14 +15,16 @@
   :assign   "="
   :or       "|"
   :dot      "."
-  :string   #"\"[^\"]+\""
-  :word     #"\w+"
+  :string   util/good-string-re
+  :word     #"[a-zA-Z\-]+"
   :ws       #" |\t|\r|\n"
+  :comment  #";+.*[\n\r]+"
   :chr      #".")
 
 (def jnw-ebnf-lexer
   (-> jnw-ebnf-base
       (discard :ws)
+      (discard :comment)
       (generate-for :word    :val util/reader)
       (generate-for :string  :val util/reader)
       (generate-for :chr     :val util/wordfn)))
@@ -41,23 +43,6 @@
 
 (declare Syntax Production Expression Term Factor)
 
-(def Syntax
-  (fnp/rep+ Production))
-
-(def Production
-  (fnp/semantics
-   (fnp/conc
-    NonTerminal
-    equals
-    Expression
-    dot)
-   (fn [[sym _ exp]]
-     `(def ~sym (fnp/effects
-                 (fnp/semantics
-                  ~exp
-                  (runtime-util/get-semantics (quote ~sym)))
-                 (runtime-util/get-hooks (quote ~sym)))))))
-
 (def Expression
   (fnp/semantics
    (fnp/conc
@@ -72,15 +57,9 @@
          `(fnp/alt ~t ~@terms)
          t)))))
 
-(def Term
-  (fnp/semantics
-   (fnp/rep+ Factor)
-   (fn [factors]
-     `(fnp/conc ~@factors))))
-
 (def opt-expr
   (fnp/semantics
-   (fnp/conc lbrace Expression rbracket)
+   (fnp/conc lbracket Expression rbracket)
    (fn [[_0 expr _1]]
      `(fnp/opt ~expr))))
 
@@ -107,7 +86,31 @@
    rep*-expr
    alt-expr))
 
-(defn run [{:keys [srcfile str]}]
+(def Term
+  (fnp/semantics
+   (fnp/rep+ Factor)
+   (fn [factors]
+     `(fnp/conc ~@factors))))
+
+(def Production
+  (fnp/semantics
+   (fnp/conc
+    NonTerminal
+    equals
+    Expression
+    dot)
+   (fn [[sym _ exp]]
+     (util/register-sym sym)
+     `(def ~sym (fnp/effects
+                 (fnp/semantics
+                  ~exp
+                  (runtime-util/get-semantics (quote ~sym)))
+                 (runtime-util/get-hooks (quote ~sym)))))))
+
+(def Syntax
+  (fnp/rep+ Production))
+
+(defn run [{str ":str" srcfile ":srcfile"}]
   (-> (if str
         str
         (slurp srcfile))

@@ -15,17 +15,19 @@
 ;; quoted_symbol ::= """ { any_character } """
 
 (deflexer bnf-base
+  :comment  #";+.*[\n\r]+"
   :assign   "::="
   :dot      "."
   :or       "|"
-  :string   #"\"[^\"]+\""
-  :ident    #"<\w+>"
-  :ws       #" |\t|\r|\n"
+  :ident    #"<.*?>"
+  :string   util/good-string-re
+  :ws       util/whitespace-re
   :chr      #".")
 
 (def bnf-lexer
   (-> bnf-base
       (discard :ws)
+      (discard :comment)
       (generate-for :ident   :val util/reader)
       (generate-for :string  :val util/reader)
       (generate-for :chr     :val util/wordfn)))
@@ -37,23 +39,6 @@
 (util/deftoken dot         :dot)
 
 (declare Syntax Production Expression Term Factor)
-
-(def Syntax
-  (fnp/rep+ Production))
-
-(def Production
-  (fnp/semantics
-   (fnp/conc
-    NonTerminal
-    equals
-    Expression
-    dot)
-   (fn [[sym _ exp]]
-     `(def ~sym (fnp/effects
-                 (fnp/semantics
-                  ~exp
-                  (runtime-util/get-semantics (quote ~sym)))
-                 (runtime-util/get-hooks (quote ~sym)))))))
 
 (def Expression
   (fnp/semantics
@@ -69,23 +54,40 @@
          `(fnp/alt ~t ~@terms)
          t)))))
 
-(def Term
-  (fnp/semantics
-   (fnp/rep+ Factor)
-   (fn [factors]
-     (if (< 1 (count factors))
-       `(fnp/conc ~@factors)
-       (first factors)))))
-
 (def Factor
   (fnp/alt
    NonTerminal
    (fnp/semantics
     Terminal
-    (fn [x] `(fnp/lit ~x))
-    )))
+    (fn [x]
+      `(fnp/lit ~x)))))
 
-(defn run [{:keys [srcfile str]}]
+(def Term
+  (fnp/semantics
+   (fnp/rep+ Factor)
+   (fn [factors]
+     `(fnp/conc ~@factors))))
+
+(def Production
+  (fnp/semantics
+   (fnp/conc
+    NonTerminal
+    equals
+    Expression
+    dot)
+   (fn [[sym _ exp]]
+     (util/register-sym sym)
+     `(def ~sym (fnp/effects
+                 (fnp/semantics
+                  ~exp
+                  (runtime-util/get-semantics (quote ~sym)))
+                 (runtime-util/get-hooks (quote ~sym)))))))
+
+(def Syntax
+  (fnp/rep+ Production))
+
+
+(defn run [{str ":str" srcfile ":srcfile"}]
   (-> (if str
         str
         (slurp srcfile))
