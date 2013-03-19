@@ -2,7 +2,8 @@
   (:require [lexington.lexer       :refer :all]
             [lexington.utils.lexer :refer :all]
             [name.choi.joshua.fnparse :as fnp]
-            [me.arrdem.sad.grammars.util :as util]))
+            [me.arrdem.sad.grammars.util :as util]
+            [me.arrdem.sad.util :as runtime-util]))
 
 (deflexer jnw-ebnf-base
   :lbracket "["
@@ -19,16 +20,12 @@
   :ws       #" |\t|\r|\n"
   :chr      #".")
 
-(def wordfn (fn [v] (apply str (:lexington.tokens/data v))))
-(def strfn (fn [v] (apply str (drop 1 (butlast (:lexington.tokens/data v))))))
-
 (def jnw-ebnf-lexer
   (-> jnw-ebnf-base
       (discard :ws)
-      (generate-for :word    :val wordfn)
-      (generate-for :string  :val strfn)
-      (generate-for :chr     :val wordfn)
-      ))
+      (generate-for :word    :val util/reader)
+      (generate-for :string  :val util/reader)
+      (generate-for :chr     :val util/wordfn)))
 
 (util/deftoken NonTerminal :word)
 (util/deftoken Terminal    :string)
@@ -55,7 +52,11 @@
     Expression
     dot)
    (fn [[sym _ exp]]
-   `(def ~sym ~@exp))))
+     `(def ~sym (fnp/effects
+                 (fnp/semantics
+                  ~exp
+                  (runtime-util/get-semantics (quote ~sym)))
+                 (runtime-util/get-hooks (quote ~sym)))))))
 
 (def Expression
   (fnp/semantics
@@ -67,43 +68,49 @@
       Term)))
    (fn [[t terms]]
      (let [terms (map second terms)]
-       `(name.choi.joshua.fnparse/alt ~t ~@terms)))))
+       (if-not (empty? terms)
+         `(fnp/alt ~t ~@terms)
+         t)))))
 
 (def Term
   (fnp/semantics
    (fnp/rep+ Factor)
    (fn [factors]
-     `(name.choi.joshua.fnparse/conc ~@factors))))
+     `(fnp/conc ~@factors))))
 
 (def opt-expr
   (fnp/semantics
    (fnp/conc lbrace Expression rbracket)
    (fn [[_0 expr _1]]
-     `(name.choi.joshua.fnparse/opt ~@expr))))
+     `(fnp/opt ~expr))))
 
 (def rep*-expr
   (fnp/semantics
    (fnp/conc lbrace Expression rbrace)
    (fn [[_0 expr _1]]
-     `(name.choi.joshua.fnparse/rep* ~@expr))))
+     `(fnp/rep* ~expr))))
 
 (def alt-expr
   (fnp/semantics
    (fnp/conc lparen Expression rparen)
    (fn [[_0 expr _1]]
-     `(name.choi.joshua.fnparse/alt ~@expr))))
+     `(fnp/alt ~expr))))
 
 (def Factor
   (fnp/alt
    NonTerminal
    (fnp/semantics
     Terminal
-    (fn [x] `(name.choi.joshua.fnparse/lit ~x)))
+    (fn [x]
+      `(fnp/lit ~x)))
    opt-expr
    rep*-expr
    alt-expr))
 
-(defn run [{:keys [srcfile]}]
-  (-> (slurp srcfile)
+(defn run [{:keys [srcfile str]}]
+  (-> (if str
+        str
+        (slurp srcfile))
       jnw-ebnf-lexer
-      (#(util/fnparse-run Syntax %1))))
+      (#(util/fnparse-run Syntax %1))
+      (#(concat (util/make-bnf-file-prefix) %1))))

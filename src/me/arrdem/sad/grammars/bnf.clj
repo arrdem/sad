@@ -23,16 +23,12 @@
   :ws       #" |\t|\r|\n"
   :chr      #".")
 
-(def reader (comp read-string #(apply str %) :lexington.tokens/data))
-(def wordfn (fn [v] (apply str (:lexington.tokens/data v))))
-(def strfn (fn [v] (apply str (drop 1 (butlast (:lexington.tokens/data v))))))
-
 (def bnf-lexer
   (-> bnf-base
       (discard :ws)
-      (generate-for :ident   :val reader)
-      (generate-for :string  :val reader)
-      (generate-for :chr     :val wordfn)))
+      (generate-for :ident   :val util/reader)
+      (generate-for :string  :val util/reader)
+      (generate-for :chr     :val util/wordfn)))
 
 (util/deftoken ortok       :or)
 (util/deftoken equals      :assign)

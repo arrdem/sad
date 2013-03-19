@@ -32,3 +32,7 @@
 (defn make-bnf-file-prefix []
   ['(require '(name.choi.joshua.fnparse)
              '(me.arrdem.sad.util))])
+
+(def reader (comp read-string #(apply str %) :lexington.tokens/data))
+(def wordfn (fn [v] (apply str (:lexington.tokens/data v))))
+(def strfn (fn [v] (apply str (drop 1 (butlast (:lexington.tokens/data v))))))
