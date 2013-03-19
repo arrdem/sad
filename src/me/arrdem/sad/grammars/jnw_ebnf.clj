@@ -57,7 +57,7 @@
 
 (def opt-expr
   (fnp/semantics
-   (fnp/conc lbrace Expression rbracket)
+   (fnp/conc lbracket Expression rbracket)
    (fn [[_0 expr _1]]
      `(fnp/opt ~expr))))
 
