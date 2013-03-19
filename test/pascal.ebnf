@@ -1,0 +1,141 @@
+;;-----------------------------------------------------------------------------
+;; Pascal.ebnf
+;; Transcribed from The Pascal User Manual and Report 4th ed.
+
+program = programheading semicolon block dot.
+programheading = proglit identifier [ programparameterlist ] .
+programparameterlist = lparen identifierlist rparen .
+block = label-declaration-part const-declaration-part type-definition-part variable-declaration-part procedure-declaration-part procedure-and-function-declaration-part statement-part.
+label-declaration-part = ["label" number {"," number} semicolon].
+const-declaration-part = ["const" constant-definition semicolon {constant-definition semicolon}].
+type-definition-part = ["type" type-definition ";"  {type-definition ";"}].
+variable-declaration-part = ["var" variable-declaration semicolon {variable-declaration semicolon}].
+procedure-and-function-declaration-part = {(procedure-declaration | function-declaration) semicolon}.
+statement-part = compound-statement.
+constant-definition   = identifier "=" constant.
+type-definition       = identifier "=" type.
+variable-declaration  = identifierlist ":" type.
+procedure-declaration = procedure-heading semicolon directive
+                       | procedure-identification semicolon block.
+function-declaration  = function-heading semicolon block
+                       | function-heading semicolon directive
+                       | function-identification semicolon block.
+procedure-heading = "procedure" identifier [formal-parameters-list].
+procedure-identification = "procedure" procedure-identifier.
+function-heading = "function" identifier [formal-parameters-list] colon result-type.
+formal-parameters-list = lparen formal-parameters-section {semicolon formal-parameters-section} rparen.
+formal-parameters-section = value-parameter-specification
+                           | variable-parameter-specification
+                           | procedural-parameter-specification
+                           | functional-parameter-specification .
+value-parameter-specification = identifier-list ":" (type-identifier | conformat-array-schema).
+variable-parameter-specification = "var" identifier-list ":" (type-identifier | conformat-array-schema).
+procedural-parameter-specification = procedure-heading.
+functional-parameter-specification = function-heading.
+conformat-array-schema = packed-constant-array-schema
+                        | unpacked-constant-array-schema.
+packed-constant-array-schema = "packed" "array" "[" index-type-specification "]" "of" type-identifier.
+unpacked-constant-array-schema = "array" "[" index-type-specification { ";" index-type-specification } "]" "of" (type-identifier | conformat-array-schema).
+index-type-specification = identifier ".." identifier ":" ordinal-type-identifier.
+compound-statement = "begin" statement-sequence "end".
+statement-sequence = statement {";" statement}.
+statement          = [label ":"] (simple-statement | structured-statement).
+simple-statement   = empty-statement
+                    | assignment-statement
+                    | procedure-statement
+                    | goto-statement.
+structured-statement = compound-statement
+                      | conditional-statement
+                      | repetitive-statement
+                      | with-statement.
+conditional-statement = if-statement
+                       | case-statement.
+repetitive-statement  = while-statement
+                       | repeat-statement
+                       | for-statement.
+empty-statement = empty.
+assignment-statement = (variable | function-identifier) ":=" expression.
+procedure-statement = procedure-identifier [actual-parameter-list | write-parameter-list].
+goto-statement = "goto" label.
+if-statement = "if" boolean-expression "then" statement ["else" statement].
+case-statement = "case" case-index "of" case {semicolon case} [semicolon] end.
+repeat-statement = "repeat" statement-sequence "until" boolean-expression.
+while-statement = "while" boolean-expression "do" statement.
+for-statement = "for" control-variable ":=" initial-value ("to" | "downto") final-value "do" statement.
+with-statement = "with" record-variable-list "do" statement.
+record-variable-list = record-variable {comma record-variable}.
+case-index = ordinal-expression.
+case = constant {comma constant} semicolon statement.
+control-variable = variable-identifier.
+initial-value = ordinal-expression.
+final-value = ordinal-expression.
+type = simple-type | structured-type | pointer-type.
+simple-type = ordinal-type | real-type-identifier.
+structured-type = ["packed"] unpacked-structure-type | structured-type-identifier.
+pointer-type = "^" domain-type | pointer-type-identifier.
+ordinal-type = enumerated-type | subrange-type | ordinal-type-identifier.
+unpacked-structure-type = array-type | record-type | set-type | file-type.
+domain-type = type-identifier.
+enumerated-type = lparen identifier-list rparen.
+subrange-type = constant dotdot constant.
+array-type = "array" "[" index-type {comma index-type} "]" "of" component-type.
+record-type = "record" field-list "end".
+set-type = "set" "of" basetype.
+file-type = "file" "of" component-type.
+index-type = ordinal-type.
+component-type = type.
+base-type = ordinal-type.
+result-type = ordinal-type-identifier
+             | real-type-identifier
+             | pointer-type-identifier.
+field-list = [(fixed-part [";" variant-part] | variant-part) [";"]].
+fixed-part = record-section {";" record-section}.
+variant-part = "case" variant-selector "of" variant {";" variant}.
+record-section = identifier-list colon type.
+variant-selector = [tag-field colon] tag-type.
+variant = constant {comma constant} colon lparen field-list rparen.
+tag-type = ordinal-type-identifier.
+tag-field = identifier.
+constant = [sign] (unsigned-number | constant-identifier | character-string).
+expression = simple-expression [relational-operator simple-expression].
+simple-expression = [sign] term {adding-operator term}.
+term = factor {multiplying-operator factor}.
+factor = unsigned-constant | bound-identifier | variable | set-constructor | function-designator | "not" factor | lparen expression rparen.
+relational-operator = op-eq | op-ne | op-lt | op-le | op-gt | op-ge | op-in.
+adding-operator = op-add | op-sub | op-or.
+multiplying-operator = op-mul | op-div | op-divdiv | op-mod | op-and.
+unsigned-constant = unsigned-number | character-string | constant-identifier | "nil".
+function-designator =  function-identifier [actual-parameter-list].
+variable = entire-variable | component-variable | identified-variable | buffer-variable.
+entire-variable = variable-identifier.
+component-variable = indexed-variable | field-designator.
+identified-variable = pointer-variable "^".
+buffer-variable = file-variable "^".
+indexed-variable = array-variable "[" index {"," index} "]".
+field-designator = [record-variable "."] field-identifier.
+set-constructor = "[" [ elememt-description {"," elememt-description} ] "]".
+elememt-description = ordinal-expression [".." ordinal-expression].
+actual-parameter-list = lparen actual-parameter {comma actual-parameter} rparen.
+actual-parameter = expression | variable | procedure-identifier | function-identifier.
+write-parameter-list = lparen (file-variable | write-parameter) rparen.
+write-parameter = expression [colon integer-expression [colon integer-expression]].
+array-variable = variable.
+record-variable = variable.
+file-variable = variable.
+pointer-variable = variable.
+integer-expression = ordinal-expression.
+boolean-expression = ordinal-expression.
+ordinal-expression = expression.
+pointer-variable = type-identifier.
+structured-type-identifier = type-identifier.
+ordinal-type-identifier = type-identifier.
+real-type-identifier = type-identifier.
+constant-identifier = identifier.
+type-identifier = identifier.
+variable-identifier = identifier.
+field-identifier = identifier.
+procedure-identifier = identifier.
+function-identifier = identifier.
+bound-identifier = identifier.
+unsigned-number = unsigned-integer | unsigned-real.
+identifier-list = identifier {"," identifier}.
