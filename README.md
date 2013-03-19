@@ -1,15 +1,7 @@
 # Sad
 
 Sad is a Clojure parser generator based on the venerable fnparse toolkit.
-Implementing a parser or other AST builder comes down to two fundimental
-steps: the lexer and the parser. Lexers take characters, and generate tokens
-which the parser is designed to "wire" together into abstract syntax trees
-by transforming the token stream.
-
-Typically as programmers we do not just go out and create a grammar (although
-someone ultimately must), rather we are often working to implement an existing
-grammar so that our programs can read some standard text format such as XML,
-HTML, CSS, or even other program source code in the case of compilers.
+The name is a joke on a Haskell parser generator library entitled Happy.
 
 Sad is a tool for generating parser combinators from human-readable and
 human-authored text in some of the many BNF grammar description languages.
@@ -28,7 +20,6 @@ atop the same template.
 - The EBNF used to specify Java 7 [here](http://docs.oracle.com/javase/specs/jls/se7/html/jls-2.html#jls-2.4)
 
 ## Compiling Grammars
-
 Sad provides first and foremost a set of functions for transforming raw text
 into parser rules, and is primarily intended for use first in generating such
 rules, and secondly as a library for making interacting with generated rules
@@ -38,25 +29,21 @@ As a Clojure program, sad can be built to a standalone jar and run via
 `java -jar sad.jar [options]` or run from source via `lein run [options]`.
 Sad accepts the following command line parameters:
 
-    :str      - must be followed by a string,
-                  will apply the selected compiler to the string.
-    :srcfile  - must be followed by a string being a file path,
-                  will apply the selected compiler to the file.
-    :grammar  - the name of a supported grammar, being one of the supported grammar
-                  strings listed above. Use of a nonstandard string will cause
-                  sad to be sad and crash.
+- `:str` - must be followed by a string, will apply the selected compiler to the string.
+- `:srcfile` - must be followed by a string being a file path, will apply the selected compiler to the file.
+- `:grammar` - the name of a supported grammar, being one of the supported grammar strings listed above. Use of a nonstandard string will cause sad to be sad and crash.
 
 ## Using Compiled Grammars
-
 If we invoke sad directly,
 ```clojure
 > (require 'me.arrdem.sad)
 nil
-> (me.arrdem.sad/-main ":str"
-                       "<bar>  ::= \"bar\".
-                        <o>    ::= \"o".
-                        <oseq> ::= <o> <oseq> | <o> .
-                        <foobar> ::= \"f\" <oseq> <bar>.")
+> (me.arrdem.sad/-main
+     ":grammar" "bnf"
+     ":str"     (str "<bar>    ::= \"bar\"."
+                     "<o>      ::= \"o\"."
+                     "<oseq>   ::= <o> <oseq> | <o> ."
+                     "<foobar> ::= \"f\" <oseq> <bar>."))
 
 (require '(name.choi.joshua.fnparse) '(me.arrdem.sad.util))
 (clojure.core/declare <oseq> <foobar> <bar> <o>)
@@ -101,7 +88,6 @@ from the generated grammar itself and for the most part frees programmers from
 having to directly edit the generated grammar.
 
 ## License
-
 Copyright © 2013 Reid "arrdem" McKenzie
 
 Distributed under the Eclipse Public License, the same as Clojure.
