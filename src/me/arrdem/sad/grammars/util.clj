@@ -14,13 +14,6 @@
 (def simple-string-re #"\"[^\"]+\"")
 (def good-string-re   #"\"[^\"\\]*(?:\\.[^\"\\]*)*\"")
 
-(def strfn
-  (fn [v]
-    (-> (:lexington.tokens/data v)
-        butlast
-        (#(drop 1 %1))
-        (#(apply str %1)))))
-
 (defn fnparse-run [rule tokens]
   (apply vector
          (fnp/rule-match
@@ -33,6 +26,19 @@
   ['(require '(name.choi.joshua.fnparse)
              '(me.arrdem.sad.util))])
 
-(def reader (comp read-string #(apply str %) :lexington.tokens/data))
-(def wordfn (fn [v] (apply str (:lexington.tokens/data v))))
-(def strfn (fn [v] (apply str (drop 1 (butlast (:lexington.tokens/data v))))))
+(def reader
+  (comp read-string
+        #(apply str %)
+        :lexington.tokens/data))
+
+(def wordfn
+  (fn [v]
+    (apply str
+           (:lexington.tokens/data v))))
+
+(def strfn
+  (fn [v]
+    (-> (:lexington.tokens/data v)
+        butlast
+        (#(drop 1 %1))
+        (#(apply str %1)))))

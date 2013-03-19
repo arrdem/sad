@@ -15,8 +15,8 @@
   :assign   "="
   :or       "|"
   :dot      "."
-  :string   #"\"[^\"]+\""
-  :word     #"\w+"
+  :string   util/good-string-re
+  :word     #"[a-zA-Z\-]+"
   :ws       #" |\t|\r|\n"
   :chr      #".")
 
@@ -41,23 +41,6 @@
 
 (declare Syntax Production Expression Term Factor)
 
-(def Syntax
-  (fnp/rep+ Production))
-
-(def Production
-  (fnp/semantics
-   (fnp/conc
-    NonTerminal
-    equals
-    Expression
-    dot)
-   (fn [[sym _ exp]]
-     `(def ~sym (fnp/effects
-                 (fnp/semantics
-                  ~exp
-                  (runtime-util/get-semantics (quote ~sym)))
-                 (runtime-util/get-hooks (quote ~sym)))))))
-
 (def Expression
   (fnp/semantics
    (fnp/conc
@@ -71,12 +54,6 @@
        (if-not (empty? terms)
          `(fnp/alt ~t ~@terms)
          t)))))
-
-(def Term
-  (fnp/semantics
-   (fnp/rep+ Factor)
-   (fn [factors]
-     `(fnp/conc ~@factors))))
 
 (def opt-expr
   (fnp/semantics
@@ -107,7 +84,30 @@
    rep*-expr
    alt-expr))
 
-(defn run [{:keys [srcfile str]}]
+(def Term
+  (fnp/semantics
+   (fnp/rep+ Factor)
+   (fn [factors]
+     `(fnp/conc ~@factors))))
+
+(def Production
+  (fnp/semantics
+   (fnp/conc
+    NonTerminal
+    equals
+    Expression
+    dot)
+   (fn [[sym _ exp]]
+     `(def ~sym (fnp/effects
+                 (fnp/semantics
+                  ~exp
+                  (runtime-util/get-semantics (quote ~sym)))
+                 (runtime-util/get-hooks (quote ~sym)))))))
+
+(def Syntax
+  (fnp/rep+ Production))
+
+(defn run [{str ":str" srcfile ":srcfile"}]
   (-> (if str
         str
         (slurp srcfile))

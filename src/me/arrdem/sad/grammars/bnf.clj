@@ -18,9 +18,9 @@
   :assign   "::="
   :dot      "."
   :or       "|"
-  :string   #"\"[^\"]+\""
   :ident    #"<\w+>"
-  :ws       #" |\t|\r|\n"
+  :string   util/good-string-re
+  :ws       util/whitespace-re
   :chr      #".")
 
 (def bnf-lexer
@@ -38,8 +38,33 @@
 
 (declare Syntax Production Expression Term Factor)
 
-(def Syntax
-  (fnp/rep+ Production))
+(def Expression
+  (fnp/semantics
+   (fnp/conc
+    Term
+    (fnp/rep*
+     (fnp/conc
+      ortok
+      Term)))
+   (fn [[t terms]]
+     (let [terms (map second terms)]
+       (if-not (empty? terms)
+         `(fnp/alt ~t ~@terms)
+         t)))))
+
+(def Factor
+  (fnp/alt
+   NonTerminal
+   (fnp/semantics
+    Terminal
+    (fn [x]
+      `(fnp/lit ~x)))))
+
+(def Term
+  (fnp/semantics
+   (fnp/rep+ Factor)
+   (fn [factors]
+     `(fnp/conc ~@factors))))
 
 (def Production
   (fnp/semantics
@@ -55,37 +80,11 @@
                   (runtime-util/get-semantics (quote ~sym)))
                  (runtime-util/get-hooks (quote ~sym)))))))
 
-(def Expression
-  (fnp/semantics
-   (fnp/conc
-    Term
-    (fnp/rep*
-     (fnp/conc
-      ortok
-      Term)))
-   (fn [[t terms]]
-     (let [terms (map second terms)]
-       (if-not (empty? terms)
-         `(fnp/alt ~t ~@terms)
-         t)))))
+(def Syntax
+  (fnp/rep+ Production))
 
-(def Term
-  (fnp/semantics
-   (fnp/rep+ Factor)
-   (fn [factors]
-     (if (< 1 (count factors))
-       `(fnp/conc ~@factors)
-       (first factors)))))
 
-(def Factor
-  (fnp/alt
-   NonTerminal
-   (fnp/semantics
-    Terminal
-    (fn [x] `(fnp/lit ~x))
-    )))
-
-(defn run [{:keys [srcfile str]}]
+(defn run [{str ":str" srcfile ":srcfile"}]
   (-> (if str
         str
         (slurp srcfile))
