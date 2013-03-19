@@ -54,26 +54,26 @@
    (fn [[t terms]]
      (let [terms (map second terms)]
        (if-not (empty? terms)
-         `(fnp/alt ~t ~@terms)
+         `(~'fnp/alt ~t ~@terms)
          t)))))
 
 (def opt-expr
   (fnp/semantics
    (fnp/conc lbracket Expression rbracket)
    (fn [[_0 expr _1]]
-     `(fnp/opt ~expr))))
+     `(~'fnp/opt ~expr))))
 
 (def rep*-expr
   (fnp/semantics
    (fnp/conc lbrace Expression rbrace)
    (fn [[_0 expr _1]]
-     `(fnp/rep* ~expr))))
+     `(~'fnp/rep* ~expr))))
 
 (def alt-expr
   (fnp/semantics
    (fnp/conc lparen Expression rparen)
    (fn [[_0 expr _1]]
-     `(fnp/alt ~expr))))
+     `(~'fnp/alt ~expr))))
 
 (def Factor
   (fnp/alt
@@ -81,7 +81,7 @@
    (fnp/semantics
     Terminal
     (fn [x]
-      `(fnp/lit ~x)))
+      `(~'fnp/lit ~x)))
    opt-expr
    rep*-expr
    alt-expr))
@@ -90,7 +90,9 @@
   (fnp/semantics
    (fnp/rep+ Factor)
    (fn [factors]
-     `(fnp/conc ~@factors))))
+     (if (< 1 (count factors))
+       `(~'fnp/conc ~@factors)
+       (first factors)))))
 
 (def Production
   (fnp/semantics
@@ -101,11 +103,13 @@
     dot)
    (fn [[sym _ exp]]
      (util/register-sym sym)
-     `(def ~sym (fnp/effects
-                 (fnp/semantics
-                  ~exp
-                  (runtime-util/get-semantics (quote ~sym)))
-                 (runtime-util/get-hooks (quote ~sym)))))))
+     `(def ~sym (~'fnp/conc
+                 (~'fnp/effects
+                  (~'util/get-pre-hook (quote ~sym)))
+                 (~'fnp/semantics ~exp
+                  (~'util/get-semantics (quote ~sym)))
+                 (~'fnp/effects
+                  (~'util/get-post-hook (quote ~sym))))))))
 
 (def Syntax
   (fnp/rep+ Production))

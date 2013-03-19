@@ -51,7 +51,7 @@
    (fn [[t terms]]
      (let [terms (map second terms)]
        (if-not (empty? terms)
-         `(fnp/alt ~t ~@terms)
+         `(~'fnp/alt ~t ~@terms)
          t)))))
 
 (def Factor
@@ -60,13 +60,15 @@
    (fnp/semantics
     Terminal
     (fn [x]
-      `(fnp/lit ~x)))))
+      `(~'fnp/lit ~x)))))
 
 (def Term
   (fnp/semantics
    (fnp/rep+ Factor)
    (fn [factors]
-     `(fnp/conc ~@factors))))
+     (if (< 1 (count factors))
+       `(~'fnp/conc ~@factors)
+       (first factors)))))
 
 (def Production
   (fnp/semantics
@@ -77,11 +79,15 @@
     dot)
    (fn [[sym _ exp]]
      (util/register-sym sym)
-     `(def ~sym (fnp/effects
-                 (fnp/semantics
-                  ~exp
-                  (runtime-util/get-semantics (quote ~sym)))
-                 (runtime-util/get-hooks (quote ~sym)))))))
+     `(def ~sym (~'fnp/semantics
+                 (~'fnp/conc
+                  (~'fnp/effects
+                   ((~'util/get-pre-hook (quote ~sym))))
+                  (~'fnp/semantics ~exp
+                                   (~'util/get-semantics (quote ~sym)))
+                  (~'fnp/effects
+                   ((~'util/get-post-hook (quote ~sym)))))
+                 second)))))
 
 (def Syntax
   (fnp/rep+ Production))
