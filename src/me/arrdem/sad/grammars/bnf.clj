@@ -33,11 +33,25 @@
       (generate-for :string  :val reader)
       (generate-for :chr     :val wordfn)))
 
-(util/deftoken ortok  :or)
-(util/deftoken equals :assign)
-(util/deftoken Terminal :string)
+(util/deftoken ortok       :or)
+(util/deftoken equals      :assign)
+(util/deftoken Terminal    :string)
 (util/deftoken NonTerminal :ident)
-(util/deftoken dot    :dot)
+(util/deftoken dot         :dot)
+
+(def bnf-hooks-registry (atom {}))
+(def bnf-semantics-registry (atom {}))
+(defn make-bnf-file-prefix []
+  ['(require 'name.choi.joshua.fnparse)
+   `(def ~'bnf-semantics-registry (atom {}))
+   `(def ~'bnf-hooks-registry      (atom {}))
+   `(defn ~'get-hooks [sym#]
+      (if-let [fns# (sym# @~'bnf-hook-registry )]
+        (apply comp fns#)))
+   `(defn ~'get-semantics [sym#]
+      (if-let [fns# (sym# @~'bnf-semantics-registry)]
+        (apply comp fns#)))])
+
 
 (declare Syntax Production Expression Term Factor)
 
@@ -52,7 +66,13 @@
     Expression
     dot)
    (fn [[sym _ exp]]
-   `(def ~sym ~@exp))))
+     (swap! bnf-semantics-registry assoc sym 'identity)
+     (swap! bnf-hooks-registry assoc sym 'identity)
+     `(def ~sym (fnp/effects
+                 (fnp/semantics
+                  ~exp
+                  (~'get-semantics (quote ~sym)))
+                 (~'get-hooks (quote ~sym)))))))
 
 (def Expression
   (fnp/semantics
@@ -64,23 +84,27 @@
       Term)))
    (fn [[t terms]]
      (let [terms (map second terms)]
-       `(name.choi.joshua.fnparse/alt ~t ~@terms)))))
+       (if terms
+         `(fnp/alt ~t ~@terms)
+         t)))))
 
 (def Term
   (fnp/semantics
    (fnp/rep+ Factor)
    (fn [factors]
-     `(name.choi.joshua.fnparse/conc ~@factors))))
+     `(fnp/conc ~@factors))))
 
 (def Factor
   (fnp/alt
    NonTerminal
    (fnp/semantics
     Terminal
-    (fn [x] `(name.choi.joshua.fnparse/lit ~x))
+    (fn [x] `(fnp/lit ~x))
     )))
 
-(defn run [{:keys [srcfile]}]
-  (-> (slurp srcfile)
+(defn run [{:keys [srcfile str]}]
+  (-> (if str str
+          (slurp srcfile))
       bnf-lexer
-      (#(util/fnparse-run Syntax %1))))
+      (#(util/fnparse-run Syntax %1))
+      (#(concat (make-bnf-file-prefix) %1))))
