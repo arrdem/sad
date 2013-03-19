@@ -18,11 +18,13 @@
   :string   util/good-string-re
   :word     #"[a-zA-Z\-]+"
   :ws       #" |\t|\r|\n"
+  :comment  #";+.*[\n\r]+"
   :chr      #".")
 
 (def jnw-ebnf-lexer
   (-> jnw-ebnf-base
       (discard :ws)
+      (discard :comment)
       (generate-for :word    :val util/reader)
       (generate-for :string  :val util/reader)
       (generate-for :chr     :val util/wordfn)))
