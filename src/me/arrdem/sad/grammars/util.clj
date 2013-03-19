@@ -46,6 +46,6 @@
   (swap! sym-registry union #{sym}))
 
 (defn make-bnf-file-prefix []
-  ['(require '(name.choi.joshua.fnparse)
-             '(me.arrdem.sad.util))
+  [`(require ['name.choi.joshua.fnparse :as '~'fnp]
+             ['me.arrdem.sad.util :as '~'util])
    `(declare ~@(deref sym-registry))])
