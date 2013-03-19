@@ -15,10 +15,11 @@
 ;; quoted_symbol ::= """ { any_character } """
 
 (deflexer bnf-base
+  :comment  #";+.*[\n\r]+"
   :assign   "::="
   :dot      "."
   :or       "|"
-  :ident    #"<\w+>"
+  :ident    #"<.*?>"
   :string   util/good-string-re
   :ws       util/whitespace-re
   :chr      #".")
@@ -26,6 +27,7 @@
 (def bnf-lexer
   (-> bnf-base
       (discard :ws)
+      (discard :comment)
       (generate-for :ident   :val util/reader)
       (generate-for :string  :val util/reader)
       (generate-for :chr     :val util/wordfn)))
