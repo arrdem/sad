@@ -6,19 +6,6 @@ The name is a joke on a Haskell parser generator library entitled Happy.
 Sad is a tool for generating parser combinators from human-readable and
 human-authored text in some of the many BNF grammar description languages.
 
-## BNF Syntaxes
-Sad provides support for the "original" Noam Chomsky BNF, a template based
-description of the EBNF grammar, and implementations of various EBNFs
-atop the same template.
-
-## Done
-- Traditional BNF (no quotes, rules denoted by < > ). Invoked as "bnf".
-- Jensen & Wirth EBNF as in the Pascal User Manual and Report 4th ed. Invoked as "wirth".
-
-### ToDo
-- EBNF quoted strings (double or single), repetition specifiers, regexes
-- The EBNF used to specify Java 7 [here](http://docs.oracle.com/javase/specs/jls/se7/html/jls-2.html#jls-2.4)
-
 ## Compiling Grammars
 Sad provides first and foremost a set of functions for transforming raw text
 into parser rules, and is primarily intended for use first in generating such
@@ -129,6 +116,21 @@ user.sample-language> (run ["f" "o" "o" "bar"])
 user.sample-language> (util/set-semantics '<foobar> (partial apply str))
 "foobar"
 ```
+## Project Status
+Sad is currently at version 0.1.3, stable & functioning but API hugely in flux.
+
+## Done
+- Traditional BNF (no quotes, rules denoted by < > ). Invoked as "bnf".
+- Jensen & Wirth EBNF as in the Pascal User Manual and Report 4th ed. Invoked as "wirth".
+- Generated Grammar hooks
+- Generated (require) for deps
+- Generated abbreviated symbols
+- Generated forward declaration for entire grammars
+- Better formatting via pprint's code settings
+
+### ToDo
+- EBNF quoted strings (double or single), repetition specifiers, regexes
+- The EBNF used to specify Java 7 [here](http://docs.oracle.com/javase/specs/jls/se7/html/jls-2.html#jls-2.4)
 
 ## License
 Copyright © 2013 Reid "arrdem" McKenzie
