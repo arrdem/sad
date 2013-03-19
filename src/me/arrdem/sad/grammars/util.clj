@@ -28,3 +28,7 @@
           #(println "FAILED: " %)
           #(println "LEFTOVER: " %2)
           {:remainder tokens})))
+
+(defn make-bnf-file-prefix []
+  ['(require '(name.choi.joshua.fnparse)
+             '(me.arrdem.sad.util))])
