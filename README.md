@@ -59,6 +59,7 @@ nil
                         <foobar> ::= \"f\" <oseq> <bar>.")
 
 (require '(name.choi.joshua.fnparse) '(me.arrdem.sad.util))
+(clojure.core/declare <oseq> <foobar> <bar> <o>)
 (def <bar>
  (name.choi.joshua.fnparse/effects
    (name.choi.joshua.fnparse/semantics
