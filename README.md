@@ -1,6 +1,8 @@
 # Sad
 
-Leiningen ```[me.arrdem.sad "0.1.4"]```
+```clojure 
+[me.arrdem.sad "0.1.4"]
+```
 
 Sad is a Clojure parser compiler based on the venerable fnparse toolkit. The 
 name is a joke on a Haskell parser generator library entitled Happy, and is an
