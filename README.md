@@ -43,14 +43,13 @@ user/compiled-sample-grammar
 
 ;; compiled-sample-grammar is now a list of S expressions (Clojure code) which
 ;; we can either print or eval. One could pretty-print, read and coppy the code
-;; via standard, or pipe it to a file. To illustrate the point that sad kicks
+;; via stdout, or pipe it to a file. To illustrate the point that sad kicks
 ;; out almost an entire namespace we will create a new namespace and eval the
 ;; generated code therein.
 
 user> (eval `(do (create-ns 'user.sample-language)
                  (in-ns 'user.sample-language)
-                 (require ['clojure.core :refer :all])
-                 ;; eval the compiled grammar
+                 ;; insert the expressions in the compiled grammar
                  ~@compiled-sample-grammar
                  ;; create a test function for running the parser
                  (defn ~'run [tokens#]
