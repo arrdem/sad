@@ -1,18 +1,19 @@
 # Sad
 
-Sad is a Clojure parser generator based on the venerable fnparse toolkit.
-The name is a joke on a Haskell parser generator library entitled Happy.
+```clojure 
+[me.arrdem.sad "0.1.4"]
+```
 
-Sad is a tool for generating parser combinators from human-readable and
-human-authored text in some of the many BNF grammar description languages.
+Sad is a Clojure parser compiler based on the venerable fnparse toolkit. The 
+name is a joke on a Haskell parser generator library entitled Happy, and is an
+accurate reflection of my mood upon seeing the dozens of pages which some 
+grammars I have contemplated implementing span.
 
 ## Compiling Grammars
-Sad provides first and foremost a set of functions for transforming raw text
-into parser rules, and is primarily intended for use first in generating such
-rules, and secondly as a library for making interacting with generated rules
-as simple and painless as possible.
-
-As a Clojure program, sad can be built to a standalone jar and run via
+Sad provides a set of functions for transforming raw text into parser rules, and 
+is primarily intended for use first in generating such rules, and secondly as a
+library for making interacting with generated rules as simple and painless as 
+possible. As a Clojure program, sad can be built to a standalone jar and run via
 `java -jar sad.jar [options]` or run from source via `lein run [options]`.
 Sad accepts the following command line parameters:
 
@@ -21,7 +22,7 @@ Sad accepts the following command line parameters:
 - `:grammar` - the name of a supported grammar, being one of the supported grammar strings listed above. Use of a nonstandard string will cause sad to be sad and crash.
 
 ## Using Compiled Grammars
-If we invoke sad directly,
+If we invoke sad directly from the Clojure repl,
 ```clojure
 user> (require 'me.arrdem.sad)
 nil
@@ -42,16 +43,16 @@ user> (def compiled-sample-grammar
 user/compiled-sample-grammar
 
 ;; compiled-sample-grammar is now a list of S expressions (Clojure code) which
-;; we can either print or eval. Before, we pretty-printed the code to standard
-;; out so that it could be written to a file however now we will create a new
-;; namespace and eval the generated code in that ns.
+;; we can either print or eval. One could pretty-print, read and coppy the code
+;; via stdout, or pipe it to a file. To illustrate the point that sad kicks
+;; out almost an entire namespace we will create a new namespace and eval the
+;; generated code therein.
 
 user> (eval `(do (create-ns 'user.sample-language)
                  (in-ns 'user.sample-language)
-                 (require ['clojure.core :refer :all])
-                 ;; eval the compiled grammar
+                 ;; insert the expressions in the compiled grammar
                  ~@compiled-sample-grammar
-                 ;; create a test function for testing the parser
+                 ;; create a test function for running the parser
                  (defn ~'run [tokens#]
                    (-> tokens#
                      ((partial assoc {} :remainder))
@@ -71,7 +72,7 @@ user.sample-language> (run ["f" "o" "o" "bar"])
 ("f" ("o" "o") "bar")
 
 ;; Okay great! The compiled parser works a treat..
-;; now for a hook or two...
+;; now just to show off pre-hooks...
 
 user.sample-language> (util/set-pre-hook '<o> #(println "looking for an \"o\"!"))
 {pre/<o> #<sample_language$eval1814$fn__1815 user.sample_language$eval1814$fn__1815@12d26c5f>}
@@ -88,8 +89,7 @@ looking for an "o"!
 looking for an "o"!
 ("f" ("o" "o") "bar")
 
-;; That looks like junk.. maybe just the cases where I _found_ an o?
-
+;; and post-hooks... (which only trigger if the rule matched)
 user.sample-language> (util/set-post-hook '<o> #(println "got an \"o\"!"))
 {post/<o> #<sample_language$eval2199$fn__2200 user.sample_language$eval2199$fn__2200@6e717955>,
  pre/<o> #<sample_language$eval1814$fn__1815 user.sample_language$eval1814$fn__1815@12d26c5f>}
@@ -106,13 +106,13 @@ looking for an "o"!
 got an "o"!
 ("f" ("o" "o") "bar")
 
-;; Awesome! Now lets just make that pesky O group one string....
+;; Awesome! Now lets just make that pesky O group one string using semantics....
 user.sample-language> (util/set-semantics '<oseq> (partial apply str))
 {<oseq> #<core$partial$fn__4070 clojure.core$partial$fn__4070@3cbc5edf>}
 user.sample-language> (run ["f" "o" "o" "bar"])
 ("f" "oo" "bar")
 
-;; And finally stringify the entire match
+;; And finally stringify the entire match the same way
 user.sample-language> (util/set-semantics '<foobar> (partial apply str))
 {<foobar> #<core$partial$fn__4070 clojure.core$partial$fn__4070@224e59d9>,
  <oseq> #<core$partial$fn__4070 clojure.core$partial$fn__4070@3cbc5edf>}
