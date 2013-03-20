@@ -114,6 +114,9 @@ user.sample-language> (run ["f" "o" "o" "bar"])
 
 ;; And finally stringify the entire match
 user.sample-language> (util/set-semantics '<foobar> (partial apply str))
+{<foobar> #<core$partial$fn__4070 clojure.core$partial$fn__4070@224e59d9>,
+ <oseq> #<core$partial$fn__4070 clojure.core$partial$fn__4070@3cbc5edf>}
+user.sample-language> (run ["f" "o" "o" "bar"])
 "foobar"
 ```
 ## Project Status
