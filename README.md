@@ -120,7 +120,7 @@ user.sample-language> (run ["f" "o" "o" "bar"])
 "foobar"
 ```
 ## Project Status
-Sad is currently at version 0.1.3, stable & functioning but API hugely in flux.
+Sad is currently at version 0.1.4, stable & functioning but API hugely in flux.
 
 ## Done
 - Traditional BNF (no quotes, rules denoted by < > ). Invoked as "bnf".

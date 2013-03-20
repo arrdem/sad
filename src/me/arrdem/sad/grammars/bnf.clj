@@ -1,42 +1,35 @@
-(ns me.arrdem.sad.grammars.bnf
+(ns ^{:doc    "An implementation of a lexer, parser and code gen for traditional
+               carrot-braced BNF as used by Naur."
+      :author "Reid McKenzie"
+      :added  "0.1.0"}
+  me.arrdem.sad.grammars.bnf
   (:require [lexington.lexer :refer :all]
             [lexington.utils.lexer :refer :all]
             [name.choi.joshua.fnparse :as fnp]
-            [me.arrdem.sad.grammars.util :as util]
-            [me.arrdem.sad.util :as runtime-util]))
+            [me.arrdem.sad.grammars.util :as gutil]
+            [me.arrdem.sad.lexers.util :as lutil]))
 
-;; syntax        ::=  { rule }
-;; rule          ::=  identifier  "::="  expression "."
-;; expression    ::=  term { "|" term }
-;; term          ::=  factor { factor }
-;; factor        ::=  identifier |
-;;                    quoted_symbol
-;; identifier    ::=  "<" letter { letter | digit } ">"
-;; quoted_symbol ::= """ { any_character } """
-
-(deflexer bnf-base
-  :comment  #";+.*[\n\r]+"
-  :assign   "::="
-  :dot      "."
-  :or       "|"
-  :ident    #"<.*?>"
-  :string   util/good-string-re
-  :ws       util/whitespace-re
-  :chr      #".")
+(lutil/make-lexer bnf-base
+  :ws lutil/whitespace
+  :comment lutil/comment
+  (lutil/deftoken equals "::=")
+  (lutil/deftoken ortok "|")
+  (lutil/deftoken Terminal lutil/string)
+  (lutil/deftoken NonTerminal #"<.*?>")
+  (lutil/deftoken dot ".")
+  :chr #"."
+  )
 
 (def bnf-lexer
   (-> bnf-base
       (discard :ws)
       (discard :comment)
-      (generate-for :ident   :val util/reader)
-      (generate-for :string  :val util/reader)
-      (generate-for :chr     :val util/wordfn)))
+      (generate-for :ident   :val lutil/readerfn)
+      (generate-for :string  :val lutil/readerfn)
+      (generate-for :chr     :val lutil/wordfn)))
 
-(util/deftoken ortok       :or)
-(util/deftoken equals      :assign)
-(util/deftoken Terminal    :string)
-(util/deftoken NonTerminal :ident)
-(util/deftoken dot         :dot)
+;;------------------------------------------------------------------------------
+;; Declare & define productions
 
 (declare Syntax Production Expression Term Factor)
 
@@ -48,27 +41,19 @@
      (fnp/conc
       ortok
       Term)))
-   (fn [[t terms]]
-     (let [terms (map second terms)]
-       (if-not (empty? terms)
-         `(~'fnp/alt ~t ~@terms)
-         t)))))
+   gutil/expression-compiler))
 
 (def Factor
   (fnp/alt
    NonTerminal
    (fnp/semantics
     Terminal
-    (fn [x]
-      `(~'fnp/lit ~x)))))
+    gutil/literal-compiler)))
 
 (def Term
   (fnp/semantics
    (fnp/rep+ Factor)
-   (fn [factors]
-     (if (< 1 (count factors))
-       `(~'fnp/conc ~@factors)
-       (first factors)))))
+   gutil/term-compiler))
 
 (def Production
   (fnp/semantics
@@ -77,26 +62,17 @@
     equals
     Expression
     dot)
-   (fn [[sym _ exp]]
-     (util/register-sym sym)
-     `(def ~sym (~'fnp/semantics
-                 (~'fnp/conc
-                  (~'fnp/effects
-                   ((~'util/get-pre-hook (quote ~sym))))
-                  (~'fnp/semantics ~exp
-                                   (~'util/get-semantics (quote ~sym)))
-                  (~'fnp/effects
-                   ((~'util/get-post-hook (quote ~sym)))))
-                 second)))))
+   gutil/production-compiler))
 
 (def Syntax
   (fnp/rep+ Production))
 
+;;------------------------------------------------------------------------------
+;; And throw a run interface on this grammar
 
 (defn run [{str ":str" srcfile ":srcfile"}]
-  (-> (if str
-        str
+  (-> (if str str
         (slurp srcfile))
       bnf-lexer
-      (#(util/fnparse-run Syntax %1))
-      (#(concat (util/make-bnf-file-prefix) %1))))
+      (#(gutil/fnparse-run Syntax %1))
+      (#(concat (gutil/make-bnf-file-prefix) %1))))
