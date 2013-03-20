@@ -1,18 +1,17 @@
 # Sad
 
-Sad is a Clojure parser generator based on the venerable fnparse toolkit.
-The name is a joke on a Haskell parser generator library entitled Happy.
+Leiningen ```[me.arrdem.sad "0.1.4"]```
 
-Sad is a tool for generating parser combinators from human-readable and
-human-authored text in some of the many BNF grammar description languages.
+Sad is a Clojure parser compiler based on the venerable fnparse toolkit. The 
+name is a joke on a Haskell parser generator library entitled Happy, and is an
+accurate reflection of my mood upon seeing the dozens of pages which some 
+grammars I have contemplated implementing span.
 
 ## Compiling Grammars
-Sad provides first and foremost a set of functions for transforming raw text
-into parser rules, and is primarily intended for use first in generating such
-rules, and secondly as a library for making interacting with generated rules
-as simple and painless as possible.
-
-As a Clojure program, sad can be built to a standalone jar and run via
+Sad provides a set of functions for transforming raw text into parser rules, and 
+is primarily intended for use first in generating such rules, and secondly as a
+library for making interacting with generated rules as simple and painless as 
+possible. As a Clojure program, sad can be built to a standalone jar and run via
 `java -jar sad.jar [options]` or run from source via `lein run [options]`.
 Sad accepts the following command line parameters:
 
@@ -21,7 +20,7 @@ Sad accepts the following command line parameters:
 - `:grammar` - the name of a supported grammar, being one of the supported grammar strings listed above. Use of a nonstandard string will cause sad to be sad and crash.
 
 ## Using Compiled Grammars
-If we invoke sad directly,
+If we invoke sad directly from the Clojure repl,
 ```clojure
 user> (require 'me.arrdem.sad)
 nil
