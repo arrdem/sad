@@ -44,7 +44,7 @@ Lexington lexer."
 (def whitespace    #" |\t|\r|\n")
 (def simple-string #"\"[^\"]+\"")
 (def string        #"\"[^\"\\]*(?:\\.[^\"\\]*)*\"")
-(def comment       #";+.*[\n\r]+")
+(def lisp-comment  #";+.*[\n\r]+")
 (def word          #"[a-zA-Z\-]+")
 
 ;;------------------------------------------------------------------------------

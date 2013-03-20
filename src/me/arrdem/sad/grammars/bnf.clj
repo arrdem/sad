@@ -11,7 +11,7 @@
 
 (lutil/make-lexer bnf-base
   :ws lutil/whitespace
-  :comment lutil/comment
+  :comment lutil/lisp-comment
   (lutil/deftoken equals "::=")
   (lutil/deftoken ortok "|")
   (lutil/deftoken Terminal lutil/string)

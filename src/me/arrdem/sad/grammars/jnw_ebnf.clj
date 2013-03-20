@@ -13,7 +13,7 @@
 
 (lutil/make-lexer jnw-ebnf-base
   :ws lutil/whitespace
-  :comment lutil/comment
+  :comment lutil/lisp-comment
   (deftoken lbracket "[")
   (deftoken rbracket "]")
   (deftoken lparen "(")
