@@ -1,4 +1,4 @@
-(defproject me.arrdem.sad "0.1.3-SNAPSHOT"
+(defproject me.arrdem.sad "0.1.4-SNAPSHOT"
   :description "A parser generator"
   :url "http://github.com/arrdem/sad"
   :license {:name "Eclipse Public License"
@@ -7,5 +7,4 @@
                  [factual/fnparse       "2.3.0"]
                  [lexington             "0.1.1"]
                  [org.clojure/tools.cli "0.2.2"]]
-
   :main me.arrdem.sad)
