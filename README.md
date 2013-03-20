@@ -11,9 +11,10 @@ grammars I have contemplated implementing span.
 
 ## Compiling Grammars
 Sad provides a set of functions for transforming raw text into parser rules, and 
-is primarily intended for use first in generating such rules, and secondly as a
-library for making interacting with generated rules as simple and painless as 
-possible. As a Clojure program, sad can be built to a standalone jar and run via
+is designed to generate such rules, and to make interacting with generated rules
+as simple and painless as possible by embedding side-effect and value 
+transformation calls which can be customized after grammar generation. As a 
+Clojure program, sad can be built to a standalone jar and run via
 `java -jar sad.jar [options]` or run from source via `lein run [options]`.
 Sad accepts the following command line parameters:
 
