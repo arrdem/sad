@@ -7,7 +7,7 @@
   me.arrdem.sad.runtime
   (:require (me.arrdem.sad.runtime [semantics :refer [get-semantics]]
                                    [hooks :refer [get-pre-hook get-post-hook]]
-                                   [stack :refer [scope-push scope-pop]])
+                                   [stack :refer [scope-push! scope-pop!]])
             [name.choi.joshua.fnparse :as fnp]))
 
 (defmacro with-semantics [semantics-ns & forms]
