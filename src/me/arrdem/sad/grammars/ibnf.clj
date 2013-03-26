@@ -11,7 +11,7 @@
 
 (lutil/make-lexer bnf-base
   :ws #"[ \t]"
-  :comment lutil/comment
+  :comment lutil/lisp-comment
   (lutil/deftoken equals ":\n")
   (lutil/deftoken dot "\n\n")
   (lutil/deftoken ortok "\n")
