@@ -1,4 +1,4 @@
-(ns me.arrdem.sad.semantics.hooks)
+(ns me.arrdem.sad.runtime.hooks)
 
 (defn- nothing [] nil)
 
