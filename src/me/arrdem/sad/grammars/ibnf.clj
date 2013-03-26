@@ -2,7 +2,7 @@
                carrot-braced BNF as used by Naur."
       :author "Reid McKenzie"
       :added  "0.1.0"}
-  me.arrdem.sad.grammars.bnf
+  me.arrdem.sad.grammars.ibnf
   (:require [lexington.lexer :refer :all]
             [lexington.utils.lexer :refer :all]
             [name.choi.joshua.fnparse :as fnp]
@@ -10,13 +10,13 @@
             [me.arrdem.sad.lexers.util :as lutil]))
 
 (lutil/make-lexer bnf-base
-  :ws lutil/whitespace
-  :comment lutil/lisp-comment
-  (lutil/deftoken equals "::=")
-  (lutil/deftoken ortok "|")
+  :ws #"[ \t]"
+  :comment lutil/comment
+  (lutil/deftoken equals ":\n")
+  (lutil/deftoken dot "\n\n")
+  (lutil/deftoken ortok "\n")
   (lutil/deftoken Terminal lutil/string)
-  (lutil/deftoken NonTerminal #"<.*?>")
-  (lutil/deftoken dot ".")
+  (lutil/deftoken NonTerminal #"[a-z\-]+")
   :chr #"."
   )
 
@@ -24,6 +24,7 @@
   (-> bnf-base
       (discard :ws)
       (discard :comment)
+      (generate-for :ident       :val lutil/readerfn)
       (generate-for :Terminal    :val lutil/readerfn)
       (generate-for :NonTerminal :val lutil/readerfn)
       (generate-for :chr         :val lutil/wordfn)))
@@ -74,5 +75,5 @@
   (-> (if str str
         (slurp srcfile))
       bnf-lexer
-      (#(gutil/fnparse-run Syntax %1))
+      (#(fnp/rule-match Syntax prn prn {:remainder %1}))
       (#(concat (gutil/make-bnf-file-prefix) %1))))

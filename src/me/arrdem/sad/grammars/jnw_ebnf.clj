@@ -13,7 +13,7 @@
 
 (lutil/make-lexer jnw-ebnf-base
   :ws lutil/whitespace
-  :comment lutil/comment
+  :comment lutil/lisp-comment
   (deftoken lbracket "[")
   (deftoken rbracket "]")
   (deftoken lparen "(")
@@ -32,9 +32,9 @@
   (-> jnw-ebnf-base
       (discard :ws)
       (discard :comment)
-      (generate-for :word    :val lutil/readerfn)
-      (generate-for :string  :val lutil/readerfn)
-      (generate-for :chr     :val lutil/wordfn)))
+      (generate-for :NonTerminal :val lutil/readerfn)
+      (generate-for :Terminal    :val lutil/readerfn)
+      (generate-for :chr         :val lutil/wordfn)))
 
 ;;------------------------------------------------------------------------------
 ;; Declare & define productions
