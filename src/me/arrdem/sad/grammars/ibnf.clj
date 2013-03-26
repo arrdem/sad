@@ -1,13 +1,17 @@
-(ns ^{:doc    "An implementation of a lexer, parser and code gen for traditional
-               carrot-braced BNF as used by Naur."
+(ns ^{:doc    "An implementation of a lexer, parser and code gen for an
+               indentation and newline based BNF grammar as used here:
+               www2.informatik.uni-halle.de/lehre/pascal/sprache/pas_bnf.html"
       :author "Reid McKenzie"
-      :added  "0.1.0"}
+      :added  "0.1.5"}
   me.arrdem.sad.grammars.ibnf
   (:require [lexington.lexer :refer :all]
             [lexington.utils.lexer :refer :all]
             [name.choi.joshua.fnparse :as fnp]
             [me.arrdem.sad.grammars.util :as gutil]
             [me.arrdem.sad.lexers.util :as lutil]))
+
+;;------------------------------------------------------------------------------
+;; Set up the lexer for the IBNF gramar
 
 (lutil/make-lexer ibnf-base
   :ws #"[ \t]"
@@ -33,6 +37,10 @@
       (generate-for :NonTerminal :val lutil/readerfn)
       (generate-for :chr         :val lutil/wordfn)))
 
+(defmacro p [& rest]
+  `(fn [& _#]
+     (println ~@rest)))
+
 ;;------------------------------------------------------------------------------
 ;; Declare & define productions
 
@@ -41,11 +49,15 @@
 (def Expression
   (fnp/semantics
    (fnp/conc
-    Term
-    (fnp/rep*
-     (fnp/conc
-      ortok
-      Term)))
+    (fnp/failpoint
+     Term
+     (p "[Expression] no term found"))
+    (fnp/failpoint
+     (fnp/rep*
+      (fnp/conc
+       ortok
+       Term))
+     (p "[Expression] no expression tail found")))
    gutil/expression-compiler))
 
 (def Factor
@@ -78,6 +90,6 @@
 (defn run [{str ":str" srcfile ":srcfile"}]
   (-> (if str str
         (slurp srcfile))
-      bnf-lexer
+      ibnf-lexer
       (#(fnp/rule-match Syntax prn prn {:remainder %1}))
       (#(concat (gutil/make-bnf-file-prefix) %1))))
