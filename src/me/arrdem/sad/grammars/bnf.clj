@@ -48,7 +48,7 @@
    NonTerminal
    (fnp/semantics
     Terminal
-    gutil/literal-compiler)))
+    gutil/install-lit)))
 
 (def Term
   (fnp/semantics
