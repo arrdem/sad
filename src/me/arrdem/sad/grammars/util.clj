@@ -2,9 +2,9 @@
                holding pen for code which will ultimately be better managed."
       :author "Reid McKenzie"}
   me.arrdem.sad.grammars.util
-  (:require [name.choi.joshua.fnparse :as fnp]
-            [clojure.set :refer [union]]
-            [clojure.string :refer [replace]]))
+  (:require (clojure [set :refer [union]]
+                     [string :refer [replace]])
+            [name.choi.joshua.fnparse :as fnp]))
 
 (defn fnparse-run
   "A wrapper to shorten fnparse's unfortunately long invocation"
@@ -50,16 +50,8 @@ declaration. Generates the (def) form, and provides a wrapper around the
 argument rule which attaches sad's runtime hooks."
   [[sym _ exp]]
   (register-sym sym)
-  `(def ~sym (~'fnp/semantics
-              (~'fnp/conc
-               (~'fnp/effects
-                ((~'util/get-pre-hook (quote ~sym))))
-               (~'fnp/semantics ~exp
-                                (~'util/get-semantics (quote ~sym)))
-               (~'fnp/effects
-                ((~'util/get-post-hook (quote ~sym)))))
-              second)))
-
+  `(~'defrule ~sym
+     ~exp))
 
 ;;------------------------------------------------------------------------------
 ;; Symbol registry and registry manipulation
@@ -141,6 +133,6 @@ evaluated. Also generates the forward declarations from the set of registered
 symbols."
   []
   `((require ['name.choi.joshua.fnparse :as '~'fnp]
-             ['me.arrdem.sad.util :as '~'util])
+             ['me.arrdem.sad.runtime :refer ['~'defrule]])
     (declare ~@(deref sym-registry))
     ~@(deref lit-code-registry)))
