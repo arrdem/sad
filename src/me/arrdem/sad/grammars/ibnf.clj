@@ -75,14 +75,29 @@
 (def Production
   (fnp/semantics
    (fnp/conc
-    NonTerminal
-    equals
-    Expression
-    dot)
+    (fnp/failpoint
+     NonTerminal
+     (p "[Production] no production naming nonterminal"))
+    (fnp/failpoint
+     equals
+     (p "[Production] no production assignment operator"))
+    (fnp/failpoint
+     Expression
+     (p "[Production] no production expression part found"))
+    (fnp/failpoint
+     dot
+     (p "[Production] no production terminator found")))
    gutil/production-compiler))
 
 (def Syntax
-  (fnp/rep+ Production))
+  (fnp/semantics
+   (fnp/rep+
+    (fnp/alt
+     Production
+     (fnp/constant-semantics
+      (fnp/alt ortok dot)
+      nil)))
+   (partial remove nil?)))
 
 ;;------------------------------------------------------------------------------
 ;; And throw a run interface on this grammar
