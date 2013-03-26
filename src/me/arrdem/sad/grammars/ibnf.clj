@@ -20,7 +20,7 @@
   (lutil/deftoken dot "\n\n")
   (lutil/deftoken ortok "\n")
   (lutil/deftoken Terminal lutil/string)
-  (lutil/deftoken NonTerminal #"[a-z\-]+")
+  (lutil/deftoken NonTerminal #"[a-zA-Z\-][a-zA-Z0-9\-]*")
   :chr #"."
   )
 
@@ -86,17 +86,17 @@
      (p "[Production] no production expression part found"))
     (fnp/failpoint
      dot
-     (p "[Production] no production terminator found")))
+     (fn [& rest] "[Production] no production terminator found" "\n" rest)))
    gutil/production-compiler))
 
 (def Syntax
   (fnp/semantics
    (fnp/rep+
     (fnp/alt
-     Production
      (fnp/constant-semantics
       (fnp/alt ortok dot)
-      nil)))
+      nil)
+     Production))
    (partial remove nil?)))
 
 ;;------------------------------------------------------------------------------
