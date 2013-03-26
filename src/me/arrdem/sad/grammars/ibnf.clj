@@ -20,7 +20,7 @@
   (lutil/deftoken dot "\n\n")
   (lutil/deftoken ortok "\n")
   (lutil/deftoken Terminal lutil/string)
-  (lutil/deftoken NonTerminal #"[a-zA-Z\-][a-zA-Z0-9\-]*")
+  (lutil/deftoken NonTerminal #"[a-zA-Z][a-zA-Z0-9\-]*")
   :chr #"."
   )
 
