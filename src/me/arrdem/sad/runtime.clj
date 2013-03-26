@@ -33,4 +33,4 @@
          ((get-post-hook (quote ~sym)))
          (scope-pop!)))
        second)
-      (scope-pop!))))
+      scope-pop!)))
