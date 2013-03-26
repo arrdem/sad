@@ -32,9 +32,9 @@
   (-> jnw-ebnf-base
       (discard :ws)
       (discard :comment)
-      (generate-for :word    :val lutil/readerfn)
-      (generate-for :string  :val lutil/readerfn)
-      (generate-for :chr     :val lutil/wordfn)))
+      (generate-for :NonTerminal :val lutil/readerfn)
+      (generate-for :Terminal    :val lutil/readerfn)
+      (generate-for :chr         :val lutil/wordfn)))
 
 ;;------------------------------------------------------------------------------
 ;; Declare & define productions
@@ -78,7 +78,7 @@
    NonTerminal
    (fnp/semantics
     Terminal
-    gutil/literal-compiler)
+    gutil/install-lit)
    opt-expr
    rep*-expr
    alt-expr))

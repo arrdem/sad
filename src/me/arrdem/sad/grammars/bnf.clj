@@ -24,9 +24,9 @@
   (-> bnf-base
       (discard :ws)
       (discard :comment)
-      (generate-for :ident   :val lutil/readerfn)
-      (generate-for :string  :val lutil/readerfn)
-      (generate-for :chr     :val lutil/wordfn)))
+      (generate-for :Terminal    :val lutil/readerfn)
+      (generate-for :NonTerminal :val lutil/readerfn)
+      (generate-for :chr         :val lutil/wordfn)))
 
 ;;------------------------------------------------------------------------------
 ;; Declare & define productions
@@ -48,7 +48,7 @@
    NonTerminal
    (fnp/semantics
     Terminal
-    gutil/literal-compiler)))
+    gutil/install-lit)))
 
 (def Term
   (fnp/semantics
