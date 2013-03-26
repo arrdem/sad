@@ -5,9 +5,10 @@
       :author "Reid McKenzie"
       :added "0.1.5"}
   me.arrdem.sad.runtime
-  (:require [me.arrdem.sad.runtime.semantics]
-            [me.arrdem.sad.runtime.hooks]
-            [me.arrdem.sad.runtime.stack]))
+  (:require (me.arrdem.sad.runtime [semantics :refer [get-semantics]]
+                                   [hooks :refer [get-pre-hook get-post-hook]]
+                                   [stack :refer [scope-push scope-pop]])
+            [name.choi.joshua.fnparse :as fnp]))
 
 (defmacro with-semantics [semantics-ns & forms]
   `(binding [me.arrdem.sad.runtime.semantics/*semantics-ns* ~semantics-ns]
@@ -17,3 +18,19 @@
   `(binding [me.arrdem.sad.runtime.hooks/*pre-hook-ns* ~pre-hook-ns
              me.arrdem.sad.runtime.hooks/*post-hook-ns* ~post-hook-ns]
      ~@forms))
+
+(defmacro defrule [sym form]
+  `(def ~sym
+     (fnp/failpoint
+      (fnp/semantics
+       (fnp/conc
+        (fnp/effects
+         (scope-push! ~(name sym))
+         ((get-pre-hook (quote ~sym))))
+        (fnp/semantics ~form
+                       (get-semantics (quote ~sym)))
+        (fnp/effects
+         ((get-post-hook (quote ~sym)))
+         (scope-pop!)))
+       second)
+      (scope-pop!))))
