@@ -39,7 +39,7 @@
 
 (defmacro p [& rest]
   `(fn [& _#]
-     (println ~@rest)))
+     (println ";" ~@rest)))
 
 ;;------------------------------------------------------------------------------
 ;; Declare & define productions
@@ -86,7 +86,7 @@
      (p "[Production] no production expression part found"))
     (fnp/failpoint
      dot
-     (fn [& rest] "[Production] no production terminator found" "\n" rest)))
+     (fn [& rest] "; [Production] no production terminator found\n;" rest)))
    gutil/production-compiler))
 
 (def Syntax
