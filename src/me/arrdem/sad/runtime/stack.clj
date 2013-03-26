@@ -9,11 +9,11 @@
     (reset! indent-width (count s))
     s))
 
-(defn scope-pop []
+(defn scope-pop! []
   (swap! rule-stack clojure.core/pop)
   (reset! prn-prefix true))
 
-(defn push [s]
+(defn scope-push! [s]
   (swap! rule-stack conj s)
   (reset! prn-prefix true))
 
