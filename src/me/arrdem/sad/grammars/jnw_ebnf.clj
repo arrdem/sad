@@ -78,7 +78,7 @@
    NonTerminal
    (fnp/semantics
     Terminal
-    gutil/literal-compiler)
+    gutil/install-lit)
    opt-expr
    rep*-expr
    alt-expr))
