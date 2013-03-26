@@ -9,7 +9,7 @@
             [me.arrdem.sad.grammars.util :as gutil]
             [me.arrdem.sad.lexers.util :as lutil]))
 
-(lutil/make-lexer bnf-base
+(lutil/make-lexer ibnf-base
   :ws #"[ \t]"
   :comment lutil/lisp-comment
   (lutil/deftoken equals ":\n")
@@ -20,10 +20,14 @@
   :chr #"."
   )
 
-(def bnf-lexer
-  (-> bnf-base
+(def ibnf-lexer
+  (-> ibnf-base
+
+      ;; Ditch junk tokens
       (discard :ws)
       (discard :comment)
+
+      ;; Process special symbols
       (generate-for :ident       :val lutil/readerfn)
       (generate-for :Terminal    :val lutil/readerfn)
       (generate-for :NonTerminal :val lutil/readerfn)
