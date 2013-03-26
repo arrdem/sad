@@ -5,5 +5,8 @@
 (defn get-semantics [sym]
   "Searches the semantics table for a transform function, returning
 clojure.core/identity if there is no registered transform."
-  (or (ns-resolve *semantics-ns* sym)
-      identity))
+  (if (and *semantics-ns*
+           (symbol? *semantics-ns*)
+           (find-ns *semantics-ns*))
+    (ns-resolve *semantics-ns* sym)
+    identity))
