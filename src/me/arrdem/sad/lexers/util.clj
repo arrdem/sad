@@ -1,8 +1,6 @@
 (ns ^{:doc    "A collection of tools for making Lexington even nicer"
       :author "Reid McKenzie" }
-
   me.arrdem.sad.lexers.util
-
   (:require [lexington.lexer       :refer :all]
             [lexington.utils.lexer :refer :all]
             [name.choi.joshua.fnparse :as fnp]))
