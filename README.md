@@ -61,7 +61,6 @@ nil
 ```
 
 ## Command line usage
-------------------------------------------------------------------------------
 Sad provides a set of functions for transforming raw text into parser rules, and
 is designed to generate such rules, and to make interacting with generated rules
 as simple and painless as possible by embedding side-effect and value
@@ -76,7 +75,6 @@ Sad accepts the following command line parameters:
 
 
 ## Runtime support for grammars
-------------------------------------------------------------------------------
 Grammars compiled by sad use macro symbol `me.arrdem.sad.runtime/deftoken` which
 creates bindings to side-effect hooks and semantic transformations. As of 0.2.0, hooks
 and transformations are not stored in global state, but rather are stored in the
@@ -99,7 +97,6 @@ execute the symbol bound there as if it were in an fnparse `(semantics)` group w
 rule matched.
 
 ## Project Status
-------------------------------------------------------------------------------
 Sad is currently at version 0.2.0, stable & functioning but API hugely in flux.
 
 ### Done
@@ -119,7 +116,6 @@ Sad is currently at version 0.2.0, stable & functioning but API hugely in flux.
 - The EBNF used to specify Java 7 [here](http://docs.oracle.com/javase/specs/jls/se7/html/jls-2.html#jls-2.4)
 
 ## License
-------------------------------------------------------------------------------
 Copyright © 2013 Reid "arrdem" McKenzie
 
 Distributed under the Eclipse Public License, the same as Clojure.
