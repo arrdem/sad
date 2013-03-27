@@ -33,4 +33,6 @@
          ((get-post-hook (quote ~sym)))
          (scope-pop!)))
        second)
-      scope-pop!)))
+      (fn[& _#]
+        (scope-pop!)
+        nil))))
