@@ -1,7 +1,8 @@
-(ns ^{:doc    "An implementation of a lexer, parser and code gen for traditional
-               carrot-braced BNF as used by Naur."
+(ns ^{:doc    "An implementation of a lexer, parser and code gen for an
+               indentation and newline based BNF grammar as used here:
+               www2.informatik.uni-halle.de/lehre/pascal/sprache/pas_bnf.html"
       :author "Reid McKenzie"
-      :added  "0.1.0"}
+      :added  "0.1.5"}
   me.arrdem.sad.grammars.ibnf
   (:require [lexington.lexer :refer :all]
             [lexington.utils.lexer :refer :all]
@@ -9,25 +10,36 @@
             [me.arrdem.sad.grammars.util :as gutil]
             [me.arrdem.sad.lexers.util :as lutil]))
 
-(lutil/make-lexer bnf-base
+;;------------------------------------------------------------------------------
+;; Set up the lexer for the IBNF gramar
+
+(lutil/make-lexer ibnf-base
   :ws #"[ \t]"
-  :comment lutil/comment
+  :comment lutil/lisp-comment
   (lutil/deftoken equals ":\n")
   (lutil/deftoken dot "\n\n")
   (lutil/deftoken ortok "\n")
   (lutil/deftoken Terminal lutil/string)
-  (lutil/deftoken NonTerminal #"[a-z\-]+")
+  (lutil/deftoken NonTerminal #"[a-zA-Z][a-zA-Z0-9\-]*")
   :chr #"."
   )
 
-(def bnf-lexer
-  (-> bnf-base
+(def ibnf-lexer
+  (-> ibnf-base
+
+      ;; Ditch junk tokens
       (discard :ws)
       (discard :comment)
+
+      ;; Process special symbols
       (generate-for :ident       :val lutil/readerfn)
       (generate-for :Terminal    :val lutil/readerfn)
       (generate-for :NonTerminal :val lutil/readerfn)
       (generate-for :chr         :val lutil/wordfn)))
+
+(defmacro p [& rest]
+  `(fn [& _#]
+     (println ";" ~@rest)))
 
 ;;------------------------------------------------------------------------------
 ;; Declare & define productions
@@ -37,11 +49,15 @@
 (def Expression
   (fnp/semantics
    (fnp/conc
-    Term
-    (fnp/rep*
-     (fnp/conc
-      ortok
-      Term)))
+    (fnp/failpoint
+     Term
+     (p "[Expression] no term found"))
+    (fnp/failpoint
+     (fnp/rep*
+      (fnp/conc
+       ortok
+       Term))
+     (p "[Expression] no expression tail found")))
    gutil/expression-compiler))
 
 (def Factor
@@ -49,7 +65,7 @@
    NonTerminal
    (fnp/semantics
     Terminal
-    gutil/literal-compiler)))
+    gutil/install-lit)))
 
 (def Term
   (fnp/semantics
@@ -59,14 +75,29 @@
 (def Production
   (fnp/semantics
    (fnp/conc
-    NonTerminal
-    equals
-    Expression
-    dot)
+    (fnp/failpoint
+     NonTerminal
+     (p "[Production] no production naming nonterminal"))
+    (fnp/failpoint
+     equals
+     (p "[Production] no production assignment operator"))
+    (fnp/failpoint
+     Expression
+     (p "[Production] no production expression part found"))
+    (fnp/failpoint
+     dot
+     (fn [& rest] "; [Production] no production terminator found\n;" rest)))
    gutil/production-compiler))
 
 (def Syntax
-  (fnp/rep+ Production))
+  (fnp/semantics
+   (fnp/rep+
+    (fnp/alt
+     (fnp/constant-semantics
+      (fnp/alt ortok dot)
+      nil)
+     Production))
+   (partial remove nil?)))
 
 ;;------------------------------------------------------------------------------
 ;; And throw a run interface on this grammar
@@ -74,6 +105,6 @@
 (defn run [{str ":str" srcfile ":srcfile"}]
   (-> (if str str
         (slurp srcfile))
-      bnf-lexer
+      ibnf-lexer
       (#(fnp/rule-match Syntax prn prn {:remainder %1}))
       (#(concat (gutil/make-bnf-file-prefix) %1))))
