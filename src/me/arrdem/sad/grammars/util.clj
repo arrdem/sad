@@ -48,10 +48,13 @@ arguments, assuming that the usage was in the context of a one or more match."
 with the symbol set atom so that it will be listed in the generated forward
 declaration. Generates the (def) form, and provides a wrapper around the
 argument rule which attaches sad's runtime hooks."
-  [[sym _ exp]]
-  (register-sym sym)
-  `(~'defrule ~sym
-     ~exp))
+  ([x]
+     (register-sym (first x))
+     (production-compiler x :f))
+
+  ([[sym _ exp] _]
+     `(~'defrule ~sym
+        ~exp)))
 
 ;;------------------------------------------------------------------------------
 ;; Symbol registry and registry manipulation
@@ -117,7 +120,7 @@ order of the rules at hand."
 
 (defn install-lit [lit]
   (let [sym (symbol (make-name lit))
-        code (production-compiler [sym nil (literal-compiler lit)])]
+        code (production-compiler [sym nil (literal-compiler lit)] :noregister)]
     (if-not (contains? @lit-registry lit)
       (do (swap! lit-registry assoc lit sym)
           (swap! lit-code-registry conj code)))
